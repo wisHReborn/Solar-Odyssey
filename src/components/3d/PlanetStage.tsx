@@ -8,6 +8,8 @@ import { PlanetData, HotspotData, TransitionVector } from "@/data/planets";
 import { sounds } from "@/utils/sounds";
 
 interface PlanetStageProps {
+  allPlanets?: PlanetData[];
+  currentIndex?: number;
   currentPlanet: PlanetData;
   prevPlanet: PlanetData | null;
   transitionProgress: number;
@@ -34,7 +36,19 @@ function getOptimizedStylizedTexture(planetId: string, baseColorHex: string) {
   ctx.fillStyle = baseColorHex;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  if (planetId === "mercury") {
+  if (planetId === "sun") {
+    ctx.fillStyle = "#ff8800";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    for (let i = 0; i < 120; i++) {
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height;
+      const r = 12 + Math.random() * 45;
+      ctx.fillStyle = Math.random() > 0.5 ? "rgba(255, 230, 80, 0.6)" : "rgba(255, 60, 0, 0.4)";
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  } else if (planetId === "mercury") {
     for (let i = 0; i < 70; i++) {
       const x = Math.random() * canvas.width;
       const y = Math.random() * canvas.height;
@@ -131,6 +145,113 @@ function getOptimizedStylizedTexture(planetId: string, baseColorHex: string) {
   const texture = new THREE.CanvasTexture(canvas);
   textureCache.set(planetId, texture);
   return texture;
+}
+
+// ละอองอนุภาคโคจรเรืองแสงรอบดวงดาว (Orbiting Plasma Micro-Particles)
+function OrbitingDustCloud({ radius, color }: { radius: number; color: string }) {
+  const pointsRef = useRef<THREE.Points>(null!);
+  const count = 160;
+
+  const [positions, speeds] = useMemo(() => {
+    const pos = new Float32Array(count * 3);
+    const spd = new Float32Array(count);
+    for (let i = 0; i < count; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = (Math.random() - 0.5) * Math.PI * 0.7;
+      const dist = radius * (1.35 + Math.random() * 0.9);
+      pos[i * 3] = dist * Math.cos(theta) * Math.cos(phi);
+      pos[i * 3 + 1] = dist * Math.sin(phi);
+      pos[i * 3 + 2] = dist * Math.sin(theta) * Math.cos(phi);
+      spd[i] = 0.2 + Math.random() * 0.5;
+    }
+    return [pos, spd];
+  }, [radius]);
+
+  useFrame((_, delta) => {
+    if (pointsRef.current) {
+      pointsRef.current.rotation.y += delta * 0.12;
+      pointsRef.current.rotation.x += delta * 0.04;
+    }
+  });
+
+  return (
+    <points ref={pointsRef}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+      </bufferGeometry>
+      <pointsMaterial
+        size={0.035}
+        color={color}
+        transparent
+        opacity={0.65}
+        blending={THREE.AdditiveBlending}
+      />
+    </points>
+  );
+}
+
+// ดวงจันทร์บริวาร 3D โคจรรอบดวงดาวจริง (Orbital Moons System)
+function OrbitalMoon({
+  orbitRadius,
+  moonRadius,
+  speed,
+  inclination,
+  color,
+  label,
+}: {
+  orbitRadius: number;
+  moonRadius: number;
+  speed: number;
+  inclination: number;
+  color: string;
+  label?: string;
+}) {
+  const moonRef = useRef<THREE.Group>(null!);
+
+  useFrame((state) => {
+    if (moonRef.current) {
+      const angle = state.clock.getElapsedTime() * speed;
+      moonRef.current.position.x = Math.cos(angle) * orbitRadius;
+      moonRef.current.position.z = Math.sin(angle) * orbitRadius;
+      moonRef.current.position.y = Math.sin(angle * 1.5) * (orbitRadius * 0.25);
+    }
+  });
+
+  return (
+    <group rotation={[inclination, 0, 0]}>
+      {/* เส้นวงโคจรเรืองแสงจางๆ (Subtle Orbit Track) */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[orbitRadius - 0.012, orbitRadius + 0.012, 64]} />
+        <meshBasicMaterial
+          color={color}
+          side={THREE.DoubleSide}
+          transparent
+          opacity={0.18}
+          blending={THREE.AdditiveBlending}
+        />
+      </mesh>
+
+      {/* ตัวดวงจันทร์ 3D */}
+      <group ref={moonRef}>
+        <mesh>
+          <sphereGeometry args={[moonRadius, 24, 24]} />
+          <meshStandardMaterial color={color} roughness={0.7} />
+        </mesh>
+        {/* แสงเรืองรอบดวงจันทร์ */}
+        <mesh scale={[1.3, 1.3, 1.3]}>
+          <sphereGeometry args={[moonRadius, 16, 16]} />
+          <meshBasicMaterial color={color} transparent opacity={0.3} side={THREE.BackSide} />
+        </mesh>
+        {label && (
+          <Html distanceFactor={9} center>
+            <div className="pointer-events-none select-none px-1.5 py-0.5 rounded bg-black/80 border border-white/20 text-[8px] font-mono tracking-widest text-neutral-300 uppercase whitespace-nowrap shadow-md">
+              {label}
+            </div>
+          </Html>
+        )}
+      </group>
+    </group>
+  );
 }
 
 function StylizedPlanetMesh({
@@ -436,6 +557,219 @@ function StylizedPlanetMesh({
           </group>
         )}
 
+        {/* 6. SIGNATURE VISUAL PHENOMENA สำหร้บแต่ละดวงดาว (Sci-Fi AAA VFX) */}
+        
+        {/* ละอองไมโครพลาสมาหมุนวนรอบดวงดาว (Orbiting Atmospheric Plasma Cloud) */}
+        <OrbitingDustCloud radius={radius} color={planet.atmosphereColor} />
+
+        {/* EARTH: ออโรร่าแสงเหนือ-แสงใต้ + ดวงจันทร์ Luna โคจรรอบโลกจริง */}
+        {planet.id === "earth" && (
+          <group>
+            {/* วงแหวนแสงเหนือที่ขั้วโลกเหนือ */}
+            <mesh position={[0, radius * 0.88, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+              <ringGeometry args={[radius * 0.25, radius * 0.48, 32]} />
+              <meshBasicMaterial
+                color="#00ffaa"
+                side={THREE.DoubleSide}
+                transparent
+                opacity={0.7}
+                blending={THREE.AdditiveBlending}
+              />
+            </mesh>
+            {/* วงแหวนแสงใต้ที่ขั้วโลกใต้ */}
+            <mesh position={[0, -radius * 0.88, 0]} rotation={[Math.PI / 2, 0, 0]}>
+              <ringGeometry args={[radius * 0.25, radius * 0.48, 32]} />
+              <meshBasicMaterial
+                color="#00aaff"
+                side={THREE.DoubleSide}
+                transparent
+                opacity={0.65}
+                blending={THREE.AdditiveBlending}
+              />
+            </mesh>
+            {/* ชั้นโอโซนเรืองแสงสีฟ้าสดใส (Atmospheric Rayleigh Rim) */}
+            <mesh scale={[1.12, 1.12, 1.12]}>
+              <sphereGeometry args={[radius, 32, 32]} />
+              <meshBasicMaterial
+                color="#38bdf8"
+                transparent
+                opacity={0.22}
+                side={THREE.BackSide}
+                blending={THREE.AdditiveBlending}
+              />
+            </mesh>
+            {/* ดวงจันทร์ LUNA 3D โคจรรอบโลก */}
+            <OrbitalMoon
+              orbitRadius={radius * 2.1}
+              moonRadius={0.16}
+              speed={0.35}
+              inclination={0.25}
+              color="#d4d4d8"
+              label="LUNA // 384,400 KM"
+            />
+          </group>
+        )}
+
+        {/* JUPITER: ระบบ 2 ดวงจันทร์บริวารหลัก (EUROPA & IO) + สนามแม่เหล็กขั้วเหนือ */}
+        {planet.id === "jupiter" && (
+          <group>
+            {/* ดวงจันทร์น้ำแข็ง EUROPA */}
+            <OrbitalMoon
+              orbitRadius={radius * 1.85}
+              moonRadius={0.14}
+              speed={0.48}
+              inclination={0.15}
+              color="#e0e7ff"
+              label="EUROPA // OCEAN MOON"
+            />
+            {/* ดวงจันทร์ภูเขาไฟ IO */}
+            <OrbitalMoon
+              orbitRadius={radius * 2.35}
+              moonRadius={0.15}
+              speed={0.32}
+              inclination={-0.2}
+              color="#fde047"
+              label="IO // VOLCANIC MOON"
+            />
+          </group>
+        )}
+
+        {/* SATURN: ดวงจันทร์ TITAN ทะยานรอบวงแหวนยักษ์ */}
+        {planet.id === "saturn" && (
+          <group>
+            <OrbitalMoon
+              orbitRadius={radius * 2.75}
+              moonRadius={0.18}
+              speed={0.26}
+              inclination={-0.35}
+              color="#f59e0b"
+              label="TITAN // METHANE LAKES"
+            />
+          </group>
+        )}
+
+        {/* MARS: ดวงจันทร์ PHOBOS โคจรระยะประชิด */}
+        {planet.id === "mars" && (
+          <group>
+            <OrbitalMoon
+              orbitRadius={radius * 1.65}
+              moonRadius={0.09}
+              speed={0.65}
+              inclination={0.1}
+              color="#a1a1aa"
+              label="PHOBOS // 6,000 KM"
+            />
+          </group>
+        )}
+
+        {/* SATURN: วงแหวนฝุ่นน้ำแข็งเรืองแสงสะท้อนระดับ Multi-Ring Density */}
+        {planet.id === "saturn" && (
+          <group rotation={[-Math.PI / 2.7, 0.22, 0]}>
+            {/* วงแหวนชั้นนอก F Ring เรืองแสงเรขาคณิตบางเฉียบ */}
+            <mesh>
+              <ringGeometry args={[radius * 2.25, radius * 2.32, 64]} />
+              <meshBasicMaterial color="#a7f3d0" side={THREE.DoubleSide} transparent opacity={0.6} blending={THREE.AdditiveBlending} />
+            </mesh>
+            {/* อนุภาคน้ำแข็งสะท้อนแสงรอบวงแหวน (Subtle Halo) */}
+            <mesh>
+              <ringGeometry args={[radius * 1.34, radius * 2.24, 64]} />
+              <meshBasicMaterial color="#fed7aa" side={THREE.DoubleSide} transparent opacity={0.25} blending={THREE.AdditiveBlending} />
+            </mesh>
+          </group>
+        )}
+
+        {/* JUPITER: มหาพายุหมุนและสนามแม่เหล็กขนาดมหึมา (Jovian Magnetosphere Aurora) */}
+        {planet.id === "jupiter" && (
+          <group>
+            {/* รังสีสนามแม่เหล็ก Jovian Flux Tube */}
+            <mesh scale={[1.15, 1.15, 1.15]}>
+              <sphereGeometry args={[radius, 24, 24]} />
+              <meshBasicMaterial
+                color="#f97316"
+                wireframe
+                transparent
+                opacity={0.16}
+                blending={THREE.AdditiveBlending}
+              />
+            </mesh>
+            {/* ออโรร่าพายุแม่เหล็กขั้วเหนือ */}
+            <mesh position={[0, radius * 0.94, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+              <ringGeometry args={[radius * 0.2, radius * 0.42, 32]} />
+              <meshBasicMaterial
+                color="#38bdf8"
+                side={THREE.DoubleSide}
+                transparent
+                opacity={0.8}
+                blending={THREE.AdditiveBlending}
+              />
+            </mesh>
+          </group>
+        )}
+
+        {/* MARS: ม่านพายุฝุ่นทรายสีส้มอิฐครอบคลุมดาว (Global Dust Storm Haze) */}
+        {planet.id === "mars" && (
+          <group>
+            <mesh scale={[1.11, 1.11, 1.11]}>
+              <sphereGeometry args={[radius, 32, 32]} />
+              <meshBasicMaterial
+                color="#ea580c"
+                transparent
+                opacity={0.28}
+                side={THREE.BackSide}
+                blending={THREE.AdditiveBlending}
+              />
+            </mesh>
+          </group>
+        )}
+
+        {/* VENUS: ชั้นบรรยากาศกรดซัลฟิวริกสะท้อนแสงสีทองเข้มข้น (Super-Reflective Albedo) */}
+        {planet.id === "venus" && (
+          <group>
+            <mesh scale={[1.12, 1.12, 1.12]}>
+              <sphereGeometry args={[radius, 32, 32]} />
+              <meshBasicMaterial
+                color="#facc15"
+                transparent
+                opacity={0.35}
+                side={THREE.BackSide}
+                blending={THREE.AdditiveBlending}
+              />
+            </mesh>
+          </group>
+        )}
+
+        {/* MERCURY: คลื่นรังสีความร้อนจากดวงอาทิตย์ (Solar Heat Flare Shimmer) */}
+        {planet.id === "mercury" && (
+          <group>
+            <mesh scale={[1.12, 1.12, 1.12]}>
+              <sphereGeometry args={[radius, 24, 24]} />
+              <meshBasicMaterial
+                color="#ffffff"
+                wireframe
+                transparent
+                opacity={0.12}
+                blending={THREE.AdditiveBlending}
+              />
+            </mesh>
+          </group>
+        )}
+
+        {/* NEPTUNE: วงแหวนอนุภาคก๊าซมีเทนสีน้ำเงินมรกตเรืองแสง (Ethereal Methane Ring) */}
+        {planet.id === "neptune" && (
+          <group rotation={[-Math.PI / 3, 0.3, 0]}>
+            <mesh>
+              <ringGeometry args={[radius * 1.35, radius * 1.55, 64]} />
+              <meshBasicMaterial
+                color="#38bdf8"
+                side={THREE.DoubleSide}
+                transparent
+                opacity={0.55}
+                blending={THREE.AdditiveBlending}
+              />
+            </mesh>
+          </group>
+        )}
+
         {/* ยูเรนัส */}
         {planet.id === "uranus" && (
           <mesh rotation={[Math.PI / 2.1, 0.1, 0]}>
@@ -543,6 +877,8 @@ function easeOutCubic(t: number): number {
 }
 
 export function PlanetStage({
+  allPlanets = [],
+  currentIndex = 0,
   currentPlanet,
   prevPlanet,
   transitionProgress,
@@ -583,24 +919,56 @@ export function PlanetStage({
 
   return (
     <group>
-      {/* ดาวดวงเก่าจะแสดงผลเฉพาะตอนที่กำลังเปลี่ยนฉากเท่านั้น */}
-      {prevPlanet && prevOpacity > 0.01 && t < 1 && (
-        <StylizedPlanetMesh
-          key={`prev-${prevPlanet.id}`}
-          planet={prevPlanet}
-          opacity={prevOpacity}
-          position={[prevX, prevY, prevZ]}
-          scale={prevScale}
-          rotationSpeed={1}
-          isScanMode={false}
-          isCoreMode={false}
-          selectedHotspot={null}
-          onSelectHotspot={() => {}}
-          isInteractive={false}
-        />
+      {/* แถวดาวที่ผ่านมาแล้วทั้งหมด: เรียงแถวเฉียงขึ้นมุมซ้ายบนอย่างชัดเจน (Steep Top-Left Orbital Line) */}
+      {currentIndex > 0 && (
+        <group>
+          {allPlanets.slice(0, currentIndex).map((prevBody, pIdx) => {
+            // dist = 1 คือดวงที่เพิ่งเลื่อนผ่านมา (เช่น ถ้าอยู่ Venus ดวงนี้คือ Mercury)
+            // ยิ่ง dist มาก ยิ่งอยู่ลึกลงไปจนถึงดวงอาทิตย์
+            const dist = currentIndex - pIdx;
+
+            // ปรับองศาเฉียงมุมซ้ายบนให้เอียงเยอะขึ้น และชัดเจน:
+            // ดวงแรกสุด (dist = 1) ไปลอยอยู่ครึ่งทางรอที่ [-4.5, 2.2, -6.5]
+            // ดวงก่อนๆ (dist > 1) ขยับต่อแถวเฉียงขึ้นไปทางมุมซ้ายบนเรื่อยๆ ตามกัน
+            const posX = -4.5 - (dist - 1) * 2.8;
+            const posY = 2.2 + (dist - 1) * 1.5; // พุ่งขึ้นมุมซ้ายบนชัดเจน
+            const posZ = -6.5 - (dist - 1) * 6.5; // ถอยลึกระดับที่ยังมองเห็นทุกดวงชัด
+
+            // เอียงโมเดลรับสายตาในแนวเฉียงมุมซ้ายบน
+            const rotX = 0.35 + dist * 0.04;
+            const rotY = 0.55 + dist * 0.06;
+            const rotZ = -0.32 - dist * 0.03;
+
+            // ขนาดโมเดล: ให้คงขนาดที่ใหญ่พอที่จะมองเห็นผิวดาวและเอกลักษณ์ชัดเจน
+            const baseScale = prevBody.id === "sun" ? 1.75 : 0.72;
+            const scaleVal = Math.max(0.42, baseScale / Math.pow(1.1, dist - 1));
+            const opacityVal = Math.max(0.65, 0.95 - (dist - 1) * 0.06);
+
+            return (
+              <group
+                key={`prev-body-${prevBody.id}-${pIdx}`}
+                position={[posX, posY, posZ]}
+                rotation={[rotX, rotY, rotZ]}
+              >
+                <StylizedPlanetMesh
+                  planet={prevBody}
+                  opacity={opacityVal}
+                  position={[0, 0, 0]}
+                  scale={scaleVal}
+                  rotationSpeed={0.5}
+                  isScanMode={false}
+                  isCoreMode={false}
+                  selectedHotspot={null}
+                  onSelectHotspot={() => {}}
+                  isInteractive={false}
+                />
+              </group>
+            );
+          })}
+        </group>
       )}
 
-      {/* ดาวดวงปัจจุบัน: จะอยู่ถาวร ไม่มีวันหายไป */}
+      {/* ดาวดวงปัจจุบัน: โดดเด่น ชัดเจน อยู่ด้านหน้า */}
       <StylizedPlanetMesh
         key={`curr-${currentPlanet.id}`}
         planet={currentPlanet}

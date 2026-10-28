@@ -17,7 +17,18 @@ function createPlanetTexture(planetId: string, baseColorHex: string) {
   ctx.fillStyle = baseColorHex;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  if (planetId === "mars") {
+  if (planetId === "sun") {
+    // Canvas solar flare & thermonuclear patterns
+    for (let i = 0; i < 600; i++) {
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height;
+      const r = 4 + Math.random() * 35;
+      ctx.fillStyle = Math.random() > 0.5 ? "rgba(255, 230, 100, 0.45)" : "rgba(255, 80, 0, 0.35)";
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  } else if (planetId === "mars") {
     for (let i = 0; i < 450; i++) {
       const x = Math.random() * canvas.width;
       const y = Math.random() * canvas.height;

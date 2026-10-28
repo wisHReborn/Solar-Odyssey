@@ -51,6 +51,48 @@ export interface PlanetData {
 }
 
 export const PLANETS: PlanetData[] = [
+  // 0. THE SUN (ดวงอาทิตย์): ดวงแรกของระบบสุริยะ ลอยเปล่งประกายพลังงานมหาศาล
+  {
+    id: "sun",
+    name: "THE SUN",
+    tagline: "The Radiant Gravitational Heart",
+    type: "Yellow Dwarf Star (G2V)",
+    distanceFromSun: "0.00M km · 0.00 AU",
+    radius: "696,340 km (109x Earth)",
+    temperature: "5,500°C (Surface) / 15,000,000°C (Core)",
+    description: "ดาวฤกษ์ศูนย์กลางแห่งระบบสุริยะ แหล่งกำเนิดแสงสว่าง ความอบอุ่น และพลังงานนิวเคลียร์ฟิวชันที่ค้ำจุนทุกชีวิตและควบคุมวงโคจรของดาวเคราะห์ทุกดวง",
+    color: "#ffaa00",
+    emissive: "#ff5500",
+    roughness: 0.1,
+    atmosphereColor: "#ff7700",
+    modelRadius: 2.1,
+    position3D: [2.5, 0, 0],
+    hudPosition: "left",
+    cameraTarget: [0, 0, 7.8],
+    flyTrajectory: "hyper-spiral",
+    stats: {
+      gravity: "28.0 G (274 m/s²)",
+      orbitalVelocity: "220 km/s (Galactic)",
+      dayLength: "27 Earth Days",
+      atmosphereType: "Hydrogen 73%, Helium 25%",
+      surfaceArea: "6.09 Trillion km²",
+      moonsCount: "8 Planets + Millions of Bodies",
+    },
+    highlightFact: "มีมวลมหาศาลคิดเป็น 99.86% ของมวลสารทั้งหมดในระบบสุริยะ และปลดปล่อยพลังงานเทียบเท่าระเบิดนิวเคลียร์นับล้านลูกทุกวินาที",
+    hotspots: [
+      {
+        id: "sunspot",
+        name: "SOLAR FLARE & SUNSPOTS",
+        detail: "จุดดับบนดวงอาทิตย์และพวยก๊าซร้อนพลาสมาที่พุ่งทะลุสนามแม่เหล็กออกสู่อวกาศนับแสนกิโลเมตร",
+        position: [0.3, 0.4, 1.4],
+      },
+    ],
+    coreData: [
+      { name: "PHOTOSPHERE", depth: "500 km", temp: "5,500°C", material: "Radiant Plasma", color: "#ffbb33", emissive: "#ff6600", wireframeColor: "#ffcc00" },
+      { name: "RADIATIVE ZONE", depth: "350,000 km", temp: "2,000,000°C", material: "Dense Photon Trap", color: "#ff7700", emissive: "#cc3300", wireframeColor: "#ff9900" },
+      { name: "THERMONUCLEAR CORE", depth: "150,000 km", temp: "15,000,000°C", material: "Proton-Proton Fusion", color: "#ffffff", emissive: "#ffaa00", wireframeColor: "#ffffff" },
+    ],
+  },
   // 1. MERCURY: พุ่งตัดเฉียงเข้ามาจากมุมขวาบนอย่างรวดเร็ว (ความเร็วสูงสมชื่อดาวพุธ)
   {
     id: "mercury",
