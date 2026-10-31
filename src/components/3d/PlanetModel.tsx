@@ -68,7 +68,7 @@ function createPlanetTexture(planetId: string, baseColorHex: string) {
       const x = Math.random() * canvas.width;
       const y = Math.random() * canvas.height;
       const r = 15 + Math.random() * 45;
-      ctx.fillStyle = "rgba(0, 220, 170, 0.35)";
+      ctx.fillStyle = "rgba(0, 20, 170, 0.35)";
       ctx.beginPath();
       ctx.arc(x, y, r, 0, Math.PI * 2);
       ctx.fill();
