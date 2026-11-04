@@ -29,7 +29,7 @@ export function FullSolarSystemOverview({ onSelectPlanet }: SolarSystemOverviewP
     <group ref={rootGroupRef}>
       {/* ดวงอาทิตย์ที่จุดกึ่งกลาง (Center Sun) */}
       <mesh
-        position={[1, 0, 0]}
+        position={[0, 0, 0]}
         onClick={(e) => {
           e.stopPropagation();
           onSelectPlanet(0);
